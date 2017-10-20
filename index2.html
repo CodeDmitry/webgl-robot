@@ -1,0 +1,227 @@
+<html>
+  <head>
+    <script src="glm.js"></script>
+    <script>
+var canvas;
+var gl;
+var program;
+var vertexShader;
+var fragmentShader;
+var coordIndex;
+var mvpIndex;
+var coordBuffer;
+var indexBuffer;
+
+var touchState = false;
+var touchPrev;
+
+const deg2rad = Math.PI / 180;
+
+var modelview_matrix = mat4.createIdentity();
+mat4.translate(modelview_matrix, [0, 0, -5]);
+//var projection_matrix = mat4.frustum(-1, 1, -1, 1, 1, 20);
+var projection_matrix = mat4.create();
+mat4.perspective(65, 600 / 500, 1, 20, projection_matrix);
+var mvp_matrix = mat4.create();
+var matrix_stack = [];
+
+const cube_coords = new Float32Array([
+    -0.5, -0.5, -0.5,
+    0.5, -0.5, -0.5,
+    0.5, 0.5, -0.5,
+    -0.5, 0.5, -0.5,
+    -0.5, -0.5, 0.5,
+    -0.5, 0.5, 0.5,
+    0.5, 0.5, 0.5,
+    0.5, -0.5, 0.5,
+    -0.5, -0.5, -0.5,
+    -0.5, 0.5, -0.5,
+    -0.5, 0.5, 0.5,
+    -0.5, -0.5, 0.5,
+    0.5, -0.5, -0.5,
+    0.5, -0.5, 0.5,
+    0.5, 0.5, 0.5,
+    0.5, 0.5, -0.5,
+    -0.5, 0.5, -0.5,
+    0.5, 0.5, -0.5,
+    0.5, 0.5, 0.5,
+    -0.5, 0.5, 0.5,
+    -0.5, -0.5, -0.5,
+    -0.5, -0.5, 0.5,
+    0.5, -0.5, 0.5,
+    0.5, -0.5, -0.5
+]);
+
+const cube_indices = new Uint8Array([
+    0, 1,
+    1, 2,
+    2, 3,
+    3, 0,
+    
+    4, 5,
+    5, 6,
+    6, 7,
+    7, 4,
+
+    0, 4,
+    1, 7,
+    2, 6,
+    3, 5,
+]);
+
+var elbow = 0;
+var shoulder = 0;
+
+var init = function() {
+    program = gl.createProgram();
+    vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+    
+    gl.shaderSource(vertexShader, `
+attribute vec3 coord;
+uniform mat4 mvp;
+
+void main() {
+    gl_Position = mvp * vec4(coord, 1.0);
+}    
+
+`);
+
+    gl.shaderSource(fragmentShader, `        
+void main() {
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+}
+`);    
+    indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData (gl.ELEMENT_ARRAY_BUFFER, cube_indices, gl.STATIC_DRAW);    
+
+    coordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, coordBuffer);
+    gl.bufferData (gl.ARRAY_BUFFER, cube_coords, gl.STATIC_DRAW);    
+
+    gl.compileShader(fragmentShader);
+    gl.compileShader(vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.attachShader(program, vertexShader);
+    gl.linkProgram(program);
+    gl.useProgram(program);
+    mvpIndex = gl.getUniformLocation(program, 'mvp');
+    coordIndex = gl.getAttribLocation(program, 'coord');
+
+    gl.enableVertexAttribArray(coordIndex);
+
+    gl.clearColor(0, 0, 0, 1);        
+};
+
+var display = function() {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    
+    gl.bindBuffer(gl.ARRAY_BUFFER, coordBuffer);
+    gl.vertexAttribPointer(coordIndex, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        
+    matrix_stack.push(modelview_matrix.slice());
+        mat4.translate(modelview_matrix, [-1, 0, 0]);    
+        mat4.rotate(modelview_matrix, deg2rad * elbow, [0, 0, 1]);
+        matrix_stack.push(modelview_matrix.slice());
+            mat4.scale(modelview_matrix, [2, .4, 1]);
+            mat4.multiply(projection_matrix, modelview_matrix, mvp_matrix);
+            gl.uniformMatrix4fv(mvpIndex, false, mvp_matrix);    
+            gl.drawElements(gl.LINES, 24, gl.UNSIGNED_BYTE, 0);    
+        modelview_matrix = matrix_stack.pop();
+    
+        mat4.translate(modelview_matrix, [1, 0, 0]);
+        mat4.rotate(modelview_matrix, deg2rad * shoulder, [0, 0, 1]);
+        mat4.translate(modelview_matrix, [1, 0, 0]);
+        matrix_stack.push(modelview_matrix.slice());
+            mat4.scale(modelview_matrix, [2, .4, 1]);
+            mat4.multiply(projection_matrix, modelview_matrix, mvp_matrix);
+            gl.uniformMatrix4fv(mvpIndex, false, mvp_matrix);    
+            gl.drawElements(gl.LINES, 24, gl.UNSIGNED_BYTE, 0);    
+        matrix_stack.pop();    
+    modelview_matrix = matrix_stack.pop();    
+    
+    gl.flush();
+};
+
+var keyboard = function(evt) {
+    switch (evt.keyCode) {
+    case 83:
+        if (evt.shiftKey) {
+            elbow = (elbow - 5) % 360;                
+        } else {
+            elbow = (elbow + 5) % 360;                            
+        } 
+        break;
+    case 69:
+        if (evt.shiftKey) {
+            shoulder = (shoulder - 5) %  360;                
+        } else {
+            shoulder = (shoulder + 5) %  360;                            
+        }
+        break;
+    };
+    
+    display();
+};
+
+var touchStart = function() {
+
+}
+
+var touchStart = function(evt) {
+    console.log('poke');
+    touchState = true;
+    
+    var touch = vec3.create(evt.touches[0].clientX, evt.touches[0].clientY, 0);
+    console.log(touch);
+           
+    touchPrev = touch;
+};
+var touchMove = function(evt) {
+    console.log('poke2');
+    console.log(evt.touches[0]);
+    var touch = vec3.create(evt.touches[0].clientX, evt.touches[0].clientY, 0);
+    
+    var dv = touchPrev.slice();
+    vec3.subtract(dv, touch);
+    console.log(dv);
+    
+    shoulder = (shoulder + dv[0]) % 360;
+    elbow = (elbow + dv[1]) % 360;
+    display();
+    
+    touchPrev = touch;
+};
+var touchEnd = function(evt) {
+    console.log('poke3');
+    touchState = false;
+};
+
+
+window.onload = function() {
+    canvas = document.getElementById('canvas');
+    gl = canvas.getContext('webgl', {antialias: false});
+    
+    canvas.style.top = '100px';
+    canvas.style.left = '100px';
+    canvas.style.position = 'absolute';
+    
+    init();    
+    
+    canvas.tabIndex = 0;
+    canvas.addEventListener('keydown', keyboard);
+    canvas.addEventListener('touchstart', touchStart);
+    canvas.addEventListener('touchmove', touchMove);
+    canvas.addEventListener('touchend', touchEnd);
+    
+    display();
+};
+
+    </script>
+  </head>
+  <body>
+    <canvas id="canvas" width="600" height="500"></canvas>
+  </body>
+</html>
