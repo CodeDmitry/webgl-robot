@@ -1,2 +1,4 @@
 # robot
-codedmitry.github.io/webgl_robot use s and e to rotate the robot "arm".
+[Click here to visit the demo](codedmitry.github.io/webgl_robot). 
+
+Use s and e to rotate the robot "arm".
