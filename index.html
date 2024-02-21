@@ -21,7 +21,7 @@ const deg2rad = Math.PI / 180;
 
 let modelview_matrix = mat4.createIdentity();
 mat4.translate(modelview_matrix, [0, 0, -5]);
-//let projection_matrix = mat4.frustum(-1, 1, -1, 1, 1, 20);
+// let projection_matrix = mat4.frustum(-1, 1, -1, 1, 1, 20);
 let projection_matrix = mat4.create();
 mat4.perspective(65, 600 / 500, 1, 20, projection_matrix);
 let mvp_matrix = mat4.create();
