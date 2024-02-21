@@ -1,4 +1,4 @@
-// glMatrix v0.9.5-altered by <<me>>
+// glMatrix v0.9.5-altered for the webgl-robot project
 "use strict";
 
 if (!('Float32Array' in window)) {
