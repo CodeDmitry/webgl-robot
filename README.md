@@ -1,4 +1,4 @@
-# robot
+# WebGL Robot Arm
 [Click here to visit the demo](codedmitry.github.io/webgl_robot). 
 
 __Instructions__:
