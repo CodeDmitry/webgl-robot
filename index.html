@@ -199,8 +199,7 @@ var touchEnd = function(evt) {
     touchState = false;
 };
 
-
-window.onload = function() {
+function window_onload() {
     canvas = document.getElementById('canvas');
     gl = canvas.getContext('webgl', {antialias: false});
     
@@ -217,12 +216,14 @@ window.onload = function() {
     canvas.addEventListener('touchend', touchEnd);
     
     display();
-};
+}
+
+window.onload = window_onload;
 
     </script>
   </head>
   <body>
     <canvas id="canvas" width="600" height="500"></canvas>
-    <div>Press s and e to control the arm.</div>
+    <div><b>Instructions</b>:<i>Press the "s" and "e" keys to rotate the robot's shoulder and elbow respectively.</i></div>
   </body>
 </html>
