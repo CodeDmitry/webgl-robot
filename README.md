@@ -1,4 +1,5 @@
 # robot
 [Click here to visit the demo](codedmitry.github.io/webgl_robot). 
 
-Press s and e to rotate the robot "arm".
+__Instructions__:
+Press the "s" and "e" keys to rotate the robot's shoulder and elbow respectively.
